@@ -4,6 +4,7 @@
 #include "AdvertDataHelpers.h"
 #include "TxtDataHelpers.h"
 #include <RTClib.h>
+#include <helpers/sensors/LPPDataHelpers.h>
 
 #ifndef BRIDGE_MAX_BAUD
 #define BRIDGE_MAX_BAUD 115200
@@ -349,6 +350,51 @@ void CommonCLI::handleCommand(uint32_t sender_timestamp, char* command, char* re
         } else {
           *(dp-1) = 0; // remove last CR
         }
+      }
+    } else if (memcmp(command, "sensor read", 11) == 0) {
+      // Live-read all telemetry sensors and print decoded values.
+      CayenneLPP lpp(160);
+      lpp.reset();
+      _sensors->querySensors(0xFF, lpp);
+      LPPReader r(lpp.getBuffer(), lpp.getSize());
+      char* dp = reply;
+      uint8_t ch, type;
+      int n = 0;
+#if defined(SENSOR_CURRENT_ROLE_LABELS)
+      // Label a multi-channel current monitor (INA3221) by role instead of raw
+      // channel: ascending V/I/P channels map positionally to panel/charge/load.
+      static const char* const ROLE[3] = {"panel", "chg", "load"};
+      uint8_t vip_ch[3]; int vip_n = 0;
+#endif
+      while (r.readHeader(ch, type) && (dp - reply) < 140) {
+        float a = 0, b = 0, c = 0;
+        char lbl[8];
+        snprintf(lbl, sizeof(lbl), "ch%d", (int)ch);
+#if defined(SENSOR_CURRENT_ROLE_LABELS)
+        if (type == LPP_VOLTAGE || type == LPP_CURRENT || type == LPP_POWER) {
+          int ri = -1;
+          for (int i = 0; i < vip_n; i++) if (vip_ch[i] == ch) { ri = i; break; }
+          if (ri < 0 && vip_n < 3) { vip_ch[vip_n] = ch; ri = vip_n++; }
+          snprintf(lbl, sizeof(lbl), "%s", (ri >= 0) ? ROLE[ri] : "ina");
+        }
+#endif
+        switch (type) {
+          case LPP_TEMPERATURE:         r.readTemperature(a);      dp += sprintf(dp, "%s temp=%.1fC\n", lbl, a); break;
+          case LPP_RELATIVE_HUMIDITY:   r.readRelativeHumidity(a); dp += sprintf(dp, "%s hum=%.1f%%\n", lbl, a); break;
+          case LPP_BAROMETRIC_PRESSURE: r.readPressure(a);         dp += sprintf(dp, "%s pres=%.1fhPa\n", lbl, a); break;
+          case LPP_VOLTAGE:             r.readVoltage(a);          dp += sprintf(dp, "%s V=%.2f\n", lbl, a); break;
+          case LPP_CURRENT:             r.readCurrent(a);          dp += sprintf(dp, "%s I=%.3fA\n", lbl, a); break;
+          case LPP_POWER:               r.readPower(a);            dp += sprintf(dp, "%s P=%.2fW\n", lbl, a); break;
+          case LPP_ALTITUDE:            r.readAltitude(a);         dp += sprintf(dp, "%s alt=%.0fm\n", lbl, a); break;
+          case LPP_GPS:                 r.readGPS(a, b, c);        dp += sprintf(dp, "%s gps=%.4f,%.4f\n", lbl, a, b); break;
+          default:                      r.skipData(type);         dp += sprintf(dp, "%s type%d\n", lbl, (int)type); break;
+        }
+        n++;
+      }
+      if (n == 0) {
+        strcpy(reply, "no sensor data (nothing detected at boot)");
+      } else if (dp > reply) {
+        *(dp - 1) = 0;  // trim trailing newline
       }
     } else if (memcmp(command, "region", 6) == 0) {
       handleRegionCmd(command, reply);

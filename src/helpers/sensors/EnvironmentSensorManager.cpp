@@ -636,6 +636,20 @@ bool EnvironmentSensorManager::begin() {
   bool detected[128] = {};
   scanI2CBus(TELEM_WIRE, detected);
 
+#ifdef MESH_DEBUG
+  // Full I2C bus dump at boot — shows every ACKing address (not just known
+  // sensors), which makes diagnosing an unrecognised/miswired device trivial.
+  // Debug-only: keeps production builds quiet and this upstream file behaving
+  // identically to upstream when MESH_DEBUG is off.
+  {
+    int _n = 0;
+    for (int _a = 0x08; _a < 0x78; _a++) {
+      if (detected[_a]) { Serial.printf("I2CSCAN: device ACK at 0x%02X\n", _a); _n++; }
+    }
+    Serial.printf("I2CSCAN: total devices on TELEM_WIRE = %d\n", _n);
+  }
+#endif
+
   // Walk the sensor table and initialize only detected devices.
   _active_sensor_count = 0;
   for (size_t i = 0; i < SENSOR_TABLE_SIZE && _active_sensor_count < MAX_ACTIVE_SENSORS; i++) {
