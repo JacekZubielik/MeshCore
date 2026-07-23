@@ -1,6 +1,10 @@
 #include "MyMesh.h"
 #include <algorithm>
 
+#ifdef WITH_NET_SERVICES
+  #include <helpers/net/NetHooks.h>
+#endif
+
 /* ------------------------------ Config -------------------------------- */
 
 #ifndef LORA_FREQ
@@ -1188,6 +1192,11 @@ void MyMesh::clearStats() {
 }
 
 void MyMesh::handleCommand(uint32_t sender_timestamp, char *command, char *reply) {
+#ifdef WITH_NET_SERVICES
+  // Net-config commands (wifi.* / mqtt.* / net.*), reachable over any CLI channel
+  // (USB / TCP / LoRa admin). Returns true if consumed.
+  if (net_handle_cli(command, reply, 160)) return;
+#endif
   if (region_load_active) {
     if (StrHelper::isBlank(command)) {  // empty/blank line, signal to terminate 'load' operation
       region_map = temp_map;  // copy over the temp instance as new current map
