@@ -1,0 +1,47 @@
+name: Build Heltec V4 Repeater (WiFi + MQTT)
+
+# Custom fork build: produces the `heltec_v4_repeater_wifi_mqtt` ROM as a downloadable
+# artifact. The upstream repeater release builder only picks up envs ending in
+# "_repeater", so this custom env (…_wifi_mqtt) needs its own workflow.
+#
+# Trigger: manual (Actions -> Run workflow) or a push to the main-custom branch
+# that touches the firmware sources. No untrusted event input is used in run: steps.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main-custom
+    paths:
+      - 'src/**'
+      - 'examples/**'
+      - 'variants/heltec_v4/**'
+      - 'variants/heltec_v4_custom/**'
+      - '.github/workflows/build-heltec-v4-repeater-wifi-mqtt.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repo
+        uses: actions/checkout@v6
+
+      - name: Setup Build Environment
+        uses: ./.github/actions/setup-build-environment
+
+      - name: Build firmware
+        run: pio run -e heltec_v4_repeater_wifi_mqtt
+
+      - name: Build merged flash image
+        run: pio run -e heltec_v4_repeater_wifi_mqtt -t mergebin
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: heltec_v4_repeater_wifi_mqtt
+          if-no-files-found: warn
+          path: |
+            .pio/build/heltec_v4_repeater_wifi_mqtt/firmware.bin
+            .pio/build/heltec_v4_repeater_wifi_mqtt/firmware-merged.bin
+            .pio/build/heltec_v4_repeater_wifi_mqtt/bootloader.bin
+            .pio/build/heltec_v4_repeater_wifi_mqtt/partitions.bin
