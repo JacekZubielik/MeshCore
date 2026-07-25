@@ -19,6 +19,10 @@
 #define LOOP_DETECT_MODERATE  2
 #define LOOP_DETECT_STRICT    3
 
+#ifndef PATH_HASH_MODE_DEFAULT
+#define PATH_HASH_MODE_DEFAULT 0   // upstream default; fork overrides to 1 via build flag
+#endif
+
 struct NodePrefs { // persisted to file
   float airtime_factor;
   char node_name[32];
