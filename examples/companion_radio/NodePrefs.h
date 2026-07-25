@@ -8,6 +8,10 @@
 #define ADVERT_LOC_NONE       0
 #define ADVERT_LOC_SHARE      1
 
+#ifndef PATH_HASH_MODE_DEFAULT
+#define PATH_HASH_MODE_DEFAULT 0   // upstream default; fork overrides to 1 via build flag
+#endif
+
 struct NodePrefs {  // persisted to file
   float airtime_factor;
   char node_name[32];
