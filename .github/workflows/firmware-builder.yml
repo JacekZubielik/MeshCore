@@ -85,6 +85,8 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: "${{ inputs.release_title_prefix }} ${{ env.GIT_TAG_VERSION }}"
-          body: ""
+          # Release notes are generated from the merged PRs between this tag and
+          # the previous one - no hand-written changelog to keep in sync.
+          generate_release_notes: true
           draft: true
           files: out/*
