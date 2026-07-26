@@ -2,7 +2,7 @@ name: PR Build Check
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, main-custom]
     paths:
       - 'src/**'
       - 'examples/**'
@@ -10,7 +10,7 @@ on:
       - 'platformio.ini'
       - '.github/workflows/pr-build-check.yml'
   push:
-    branches: [main, dev]
+    branches: [main, dev, main-custom]
     paths:
       - 'src/**'
       - 'examples/**'
@@ -43,6 +43,8 @@ jobs:
           - wio_wm1110_repeater
           # SX1276 (ESP32)
           - Tbeam_SX1276_repeater
+          # fork-only: Heltec V4 with WiFi + MQTT + TCP CLI
+          - heltec_v4_wifi_mqtt_repeater
 
     steps:
       - name: Clone Repo
