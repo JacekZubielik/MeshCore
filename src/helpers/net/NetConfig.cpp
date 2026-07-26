@@ -23,7 +23,12 @@ static bool assignKey(NetConfig& c, const char* k, const char* v) {
 }
 
 void NetConfig::loadDefaults() {
-  wifi_enabled = true;
+  // Off by default: the shipped credentials are placeholders, so a freshly
+  // flashed node would otherwise sit in a reconnect loop against a network
+  // named "changeme". Enable it once configured: `wifi.enabled 1`.
+  // Nodes with a stored netcfg keep their setting - load() applies defaults
+  // per key, then overrides with whatever the file contains.
+  wifi_enabled = false;
   strlcpy(wifi_ssid, WIFI_SSID, sizeof(wifi_ssid));
   strlcpy(wifi_pwd,  WIFI_PWD,  sizeof(wifi_pwd));
   wifi_power = WIFI_TX_POWER_DBM;
