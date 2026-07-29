@@ -21,8 +21,8 @@ runs:
       run: |
         pip install --upgrade platformio
 
-    # a git tag of "room-server-v1.2.3" sets "v1.2.3";
-    # "repeater-v1.16.0-custom.1" sets "v1.16.0-custom.1" (keeps the full version incl. -suffix)
+    # a git tag of "rs-v1.2.3" sets "v1.2.3";
+    # "rpt-v1.16.0-custom.1" sets "v1.16.0-custom.1" (keeps the full version incl. -suffix)
     - name: Extract Version from Git Tag
       shell: bash
       run: |

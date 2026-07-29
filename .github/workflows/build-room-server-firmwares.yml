@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'room-server-*'
+      - 'rs-*'
 
 jobs:
   build-room-server-firmwares:
     uses: ./.github/workflows/firmware-builder.yml
     with:
       firmware_type: 'room-server'
-      release_title_prefix: 'Room Server Firmware'
+      release_title_prefix: 'RS'

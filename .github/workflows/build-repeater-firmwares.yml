@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - 'repeater-*'
+      - 'rpt-*'
 
 jobs:
   build-repeater-firmwares:
     uses: ./.github/workflows/firmware-builder.yml
     with:
       firmware_type: 'repeater'
-      release_title_prefix: 'Repeater Firmware'
+      release_title_prefix: 'RPT'
