@@ -10,6 +10,16 @@ on:
         required: true
         type: string
 
+# GitHub occasionally delivers a duplicate 'push' webhook for a single tag push,
+# firing this reusable workflow twice for the same ref. Without this guard, both
+# runs race on create-release (softprops/action-gh-release), and the losing run's
+# generate_release_notes call appends onto the winner's already-published body
+# instead of replacing it, producing a duplicated changelog. Keying on ref +
+# firmware_type keeps rpt/rs/cmp independent while collapsing true duplicates.
+concurrency:
+  group: firmware-builder-${{ inputs.firmware_type }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   generate-build-matrix:
